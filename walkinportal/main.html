@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sum Hospital Services ATM</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            background-color: #f8f8f8;
+        }
+
+        #app-container {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .slide {
+            flex: 0 0 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            transition: opacity 0.5s;
+        }
+
+        .bg-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .nav-btn.active {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.8), inset 0 0 10px rgba(59, 130, 246, 0.5);
+            transform: scale(1.05);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #e2e8f0, #f8fafc);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .card {
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            box-shadow: 0 10px 30px rgba(147, 197, 253, 0.3);
+            border: 1px solid #dbeafe;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(147, 197, 253, 0.5);
+        }
+
+        .primary-btn {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+        }
+        .primary-btn:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 10px rgba(59, 130, 246, 0.4);
+        }
+        
+        .splash-slide {
+            background: #e2e8f0;
+            flex-direction: column;
+            color: #2d3748;
+            position: relative;
+        }
+        .splash-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        @keyframes pulse-once {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .animate-pulse-once {
+            animation: pulse-once 1.5s ease-out;
+        }
+    
+        #ai-chat-btn {
+            position: fixed;
+            bottom: 6rem;
+            right: 1.5rem;
+            z-index: 150;
+            cursor: pointer;
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        #ai-chat-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+        #ai-chat-widget {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 200;
+            width: 90%;
+            max-width: 400px;
+            height: 80%;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+        }
+        #ai-chat-widget.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #chat-header {
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        #chat-body {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background-color: #f3f4f6;
+        }
+        .message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+        }
+        .message.user {
+            background-color: #dbeafe;
+            color: #1e40af;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .message.ai {
+            background-color: #e2e8f0;
+            color: #374151;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+        #chat-input-container {
+            display: flex;
+            padding: 0.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        #on-screen-keyboard {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #e2e8f0;
+            border-top: 1px solid #cbd5e1;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        }
+        #on-screen-keyboard.visible {
+            transform: translateY(0);
+        }
+        .keyboard-row {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.5rem;
+        }
+        .keyboard-key {
+            padding: 0.5rem;
+            background-color: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .keyboard-key:active {
+            transform: scale(0.95);
+            background-color: #e2e8f0;
+        }
+        .keyboard-key.wide-2 { grid-column: span 2; }
+        .keyboard-key.wide-3 { grid-column: span 3; }
+        
+        .service-icon {
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-2xl font-semibold mb-4 text-gray-800"></h3>
+            <p id="modal-message" class="text-gray-600 mb-6"></p>
+            <button id="modal-close-btn" class="primary-btn">Close</button>
+        </div>
+    </div>
+
+    <div id="app-container" class="flex-shrink-0">
+
+        <!-- Slide 1: Splash Screen -->
+        <div id="splash-slide" class="slide splash-slide">
+            <div class="splash-content">
+                <h1 class="text-7xl md:text-8xl font-extrabold mb-4 animate-pulse-once">SUM Hospital</h1>
+                <p class="text-3xl md:text-4xl font-light mb-12">Your Health, Our Priority</p>
+                <button id="start-btn" class="primary-btn px-12 py-6 text-3xl font-bold animate-pulse-once">Touch to Start</button>
+            </div>
+        </div>
+
+        <!-- Slide 2: Main Menu -->
+        <div id="main-menu-slide" class="slide flex-col">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1579684385140-f1c65d53a9e3?q=80&w=2574&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-5xl p-8 rounded-2xl shadow-2xl bg-white backdrop-blur-sm card">
+                <h2 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-8 text-center">Main Menu</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <button data-target="appointments-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Appointments">📅</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Appointments</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">Book and pay for an appointment.</p>
+                    </button>
+                    <button data-target="beds-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Bed Availability">🛏️</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Bed Availability</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">See real-time bed status across wards.</p>
+                    </button>
+                    <button data-target="doctors-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Find a Doctor">🩺</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Find a Doctor</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">Search for specialists and their schedules.</p>
+                    </button>
+                    <button data-target="queue-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Queue Status">🚶</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Queue Status</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">View live queue and wait times.</p>
+                    </button>
+                    <button data-target="reports-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Lab Reports">📋</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Lab Reports</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">Pay to retrieve your lab and test reports.</p>
+                    </button>
+                    <button data-target="emergency-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                        <span class="service-icon" role="img" aria-label="Emergency">🚨</span>
+                        <h3 class="text-xl font-semibold text-gray-800">Emergency</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">Access critical emergency information.</p>
+                    </button>
+                    <button data-target="health-check-slide" class="nav-btn p-6 rounded-xl text-center flex flex-col items-center justify-center space-y-3 card">
+                         <img src="https://placehold.co/48x48/3B82F6/FFFFFF?text=HC" alt="General Health Check" class="w-12 h-12 mb-2 rounded-full">
+                        <h3 class="text-xl font-semibold text-gray-800">Health Check</h3>
+                        <p class="text-sm text-gray-500 hidden md:block">Get a quick health screening.</p>
+                    </button>
+                </div>
+                <div id="user-info" class="mt-8 text-sm text-gray-500 hidden">
+                    <p>Your temporary ID: <span id="user-id-display" class="font-mono text-xs"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Appointment Booking -->
+        <div id="appointments-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1551076802-07a8264d84f4?q=80&w=2574&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Book an Appointment</h2>
+                <form id="appointment-form" class="w-full space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="flex flex-col">
+                            <label for="patient-name" class="mb-2 font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="patient-name" placeholder="Enter your full name" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="department" class="mb-2 font-medium text-gray-700">Department</label>
+                            <select id="department" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                                <option value="" disabled selected>Select a Department</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Neurology">Neurology</option>
+                                <option value="Orthopedics">Orthopedics</option>
+                                <option value="Pediatrics">Pediatrics</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="flex flex-col">
+                            <label for="appointment-date" class="mb-2 font-medium text-gray-700">Preferred Date</label>
+                            <input type="date" id="appointment-date" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="appointment-time" class="mb-2 font-medium text-gray-700">Preferred Time</label>
+                            <input type="time" id="appointment-time" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="book-appointment-btn" class="w-full primary-btn">
+                        <span id="book-btn-text">Proceed to Payment</span>
+                        <div id="book-btn-spinner" class="spinner mx-auto hidden"></div>
+                    </button>
+                </form>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+
+        <!-- Slide 4: Bed Availability -->
+        <div id="beds-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1587854692131-7e6144e5b9f7?q=80&w=2670&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Bed Availability</h2>
+                <div id="bed-availability-display" class="w-full space-y-4">
+                    <p class="text-center text-gray-500">Loading bed availability...</p>
+                </div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+        
+        <!-- Slide 5: Find a Doctor -->
+        <div id="doctors-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1629909613656-a8080f423318?q=80&w=2574&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Find a Doctor</h2>
+                <div class="w-full space-y-4">
+                    <div class="flex space-x-4">
+                        <input type="text" id="doctor-search-input" placeholder="Search by name or department" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow">
+                        <button id="doctor-search-btn" class="primary-btn px-6">Search</button>
+                    </div>
+                    <div id="doctor-results" class="space-y-4">
+                        <p class="text-center text-gray-500">Search for a doctor above.</p>
+                    </div>
+                </div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+        
+        <!-- Slide 6: Queue Status -->
+        <div id="queue-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1583095368686-3023910c2688?q=80&w=2670&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Queue Status</h2>
+                <div id="queue-display" class="w-full">
+                    <p class="text-center text-gray-500">Loading queue data...</p>
+                </div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+
+        <!-- Slide 7: Lab Reports -->
+        <div id="reports-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1538356133092-2313b836d542?q=80&w=2671&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Retrieve Lab Reports</h2>
+                <form id="reports-form" class="w-full space-y-6">
+                    <p class="text-sm text-gray-600">Enter your Report ID below to retrieve your report. A payment will be required before you can view it.</p>
+                    <div class="flex flex-col">
+                        <label for="report-id" class="mb-2 font-medium text-gray-700">Report ID</label>
+                        <input type="text" id="report-id" placeholder="Enter your Report ID" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                    </div>
+                    <button type="submit" id="get-report-btn" class="w-full primary-btn">
+                        <span id="report-btn-text">Check Report Status</span>
+                        <div id="report-btn-spinner" class="spinner mx-auto hidden"></div>
+                    </button>
+                </form>
+                <div id="report-result" class="mt-8 p-6 w-full rounded-xl bg-gray-50 border border-gray-200 hidden"></div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+        
+        <!-- Slide 8: Emergency Info -->
+        <div id="emergency-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1576091160550-fd421cb8b76c?q=80&w=2670&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center text-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Emergency Information</h2>
+                <p class="text-lg text-gray-600 mb-4">In case of a medical emergency, please proceed to the nearest Emergency Room.</p>
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg text-left w-full">
+                    <h3 class="text-xl font-bold text-red-700 mb-2">Emergency Contact Numbers:</h3>
+                    <p class="text-red-900 font-mono text-2xl">Main Line: (123) 456-7890</p>
+                    <p class="text-red-900 font-mono text-2xl mt-2">Ambulance: 911</p>
+                </div>
+                <div class="mt-8 w-full">
+                    <img src="https://placehold.co/600x400/fff/red?text=Emergency+Room+Directions" class="rounded-xl shadow-md" alt="Emergency room directions map">
+                </div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+
+        <!-- Slide 9: Health Check -->
+        <div id="health-check-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1551106652-a5bcf4b22db3?q=80&w=2670&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-4xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">General Health Check</h2>
+                <p class="text-center text-gray-600">This service offers a quick, non-diagnostic health screening. Please follow the instructions on the screen for blood pressure, temperature, and other vital measurements.</p>
+                <button class="primary-btn mt-6">Start Health Check</button>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+
+        <!-- Slide 10: Payment -->
+        <div id="payment-slide" class="slide flex-col space-y-8">
+            <div class="bg-image-overlay" style="background-image: url('https://images.unsplash.com/photo-1596541223947-f275e11d044f?q=80&w=2574&auto=format&fit=crop');"></div>
+            <div class="relative z-10 w-full max-w-2xl p-8 rounded-2xl card flex flex-col items-center">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6">Complete Your Payment</h2>
+                <div id="payment-details-summary" class="w-full text-center p-4 rounded-lg bg-blue-50 border border-blue-200 mb-6">
+                    <p class="text-lg font-medium text-blue-800">Service: <span id="payment-service" class="font-bold"></span></p>
+                    <p class="text-2xl font-bold text-blue-900 mt-2">Amount: <span id="payment-amount">$0.00</span></p>
+                </div>
+                <div class="w-full">
+                    <p class="text-center text-gray-600 mb-4">Insert your card below to complete the payment.</p>
+                    <img src="https://placehold.co/600x200/fff/111?text=CARD+READER" alt="Mockup of a card reader" class="rounded-xl shadow-inner mx-auto">
+                    <form id="payment-form" class="w-full space-y-4 mt-6">
+                        <div class="flex flex-col">
+                            <label for="card-number" class="mb-2 font-medium text-gray-700">Card Number</label>
+                            <input type="text" id="card-number" placeholder="XXXX-XXXX-XXXX-XXXX" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                        </div>
+                        <div class="flex space-x-4">
+                            <div class="flex-1 flex flex-col">
+                                <label for="expiry-date" class="mb-2 font-medium text-gray-700">Expiry Date</label>
+                                <input type="text" id="expiry-date" placeholder="MM/YY" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                            </div>
+                            <div class="flex-1 flex flex-col">
+                                <label for="cvv" class="mb-2 font-medium text-gray-700">CVV</label>
+                                <input type="text" id="cvv" placeholder="123" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" required>
+                            </div>
+                        </div>
+                        <button type="submit" id="pay-btn" class="w-full primary-btn mt-6">
+                            <span id="pay-btn-text">Pay Now</span>
+                            <div id="pay-btn-spinner" class="spinner mx-auto hidden"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <button data-target="main-menu-slide" class="nav-btn-back primary-btn self-start">Back</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white bg-opacity-90 shadow-lg backdrop-blur-sm flex justify-center space-x-4 md:space-x-8">
+        <button id="nav-main-menu" data-target="main-menu-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">🏠</span>
+            <span class="text-xs font-medium">Home</span>
+        </button>
+        <button id="nav-appointments" data-target="appointments-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">📅</span>
+            <span class="text-xs font-medium">Appointments</span>
+        </button>
+        <button id="nav-beds" data-target="beds-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">🛏️</span>
+            <span class="text-xs font-medium">Beds</span>
+        </button>
+        <button id="nav-doctors" data-target="doctors-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">🩺</span>
+            <span class="text-xs font-medium">Doctors</span>
+        </button>
+        <button id="nav-queue" data-target="queue-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">🚶</span>
+            <span class="text-xs font-medium">Queue</span>
+        </button>
+        <button id="nav-reports" data-target="reports-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">📋</span>
+            <span class="text-xs font-medium">Reports</span>
+        </button>
+        <button id="nav-emergency" data-target="emergency-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <span class="text-xl">🚨</span>
+            <span class="text-xs font-medium">Emergency</span>
+        </button>
+        <button id="nav-health-check" data-target="health-check-slide" class="nav-btn flex flex-col items-center text-gray-500 hover:text-blue-600 transition-colors">
+            <img src="https://placehold.co/24x24/3B82F6/FFFFFF?text=HC" alt="Health Check" class="w-6 h-6 rounded-full">
+            <span class="text-xs font-medium">Health</span>
+        </button>
+    </div>
+
+    <!-- AI Chat Button -->
+    <div id="ai-chat-btn" class="flex flex-col items-center justify-center">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </div>
+
+    <!-- AI Chat Widget -->
+    <div id="ai-chat-widget">
+        <div id="chat-header">
+            <h3 class="text-lg font-bold">AI Assistant</h3>
+            <button id="close-chat-btn" class="w-6 h-6"><svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <div id="chat-body" class="p-4 overflow-y-auto space-y-4">
+            <div class="message ai">Hello! I'm your virtual hospital assistant. How can I help you today?</div>
+            <div class="message ai text-xs text-gray-500">Disclaimer: I am an AI assistant and cannot provide medical diagnoses. Always consult a qualified medical professional for any health concerns.</div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Ask a question..." class="flex-grow p-3 rounded-l-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-shadow" readonly>
+            <button id="chat-send-btn" class="primary-btn px-6 rounded-r-lg"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+        </div>
+        
+        <div id="on-screen-keyboard">
+            <div class="keyboard-row">
+                <button class="keyboard-key">q</button><button class="keyboard-key">w</button><button class="keyboard-key">e</button><button class="keyboard-key">r</button><button class="keyboard-key">t</button><button class="keyboard-key">y</button><button class="keyboard-key">u</button><button class="keyboard-key">i</button><button class="keyboard-key">o</button><button class="keyboard-key">p</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="keyboard-key wide-2">a</button><button class="keyboard-key">s</button><button class="keyboard-key">d</button><button class="keyboard-key">f</button><button class="keyboard-key">g</button><button class="keyboard-key">h</button><button class="keyboard-key">j</button><button class="keyboard-key">k</button><button class="keyboard-key">l</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="keyboard-key">z</button><button class="keyboard-key">x</button><button class="keyboard-key">c</button><button class="keyboard-key">v</button><button class="keyboard-key">b</button><button class="keyboard-key">n</button><button class="keyboard-key">m</button><button class="keyboard-key" data-char="backspace">⌫</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="keyboard-key wide-3" data-char=" ">Space</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Global variables for Firebase configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, setDoc, onSnapshot, query, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        setLogLevel('debug');
+
+        // Initialize Firebase
+        let app, db, auth;
+        // PREVIEW FIX: Added a flag to track successful Firebase initialization
+        let isFirebaseInitialized = false; 
+        try {
+            // PREVIEW FIX: Only initialize Firebase if a valid config is provided
+            if (firebaseConfigString && firebaseConfigString !== '{}') {
+                const firebaseConfig = JSON.parse(firebaseConfigString);
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseInitialized = true; // Set flag on success
+                console.log("Firebase initialized successfully.");
+            } else {
+                 console.warn("Firebase config is missing or empty. Firebase-dependent features will be disabled.");
+            }
+        } catch (error) {
+            showModal('Error', `Firebase initialization failed. Check your configuration. Details: ${error.message}`);
+            console.error("Firebase initialization error:", error);
+        }
+
+        let userId = null;
+        let isAuthReady = false;
+        let currentTransaction = {};
+        let conversationHistory = [];
+
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+        }
+        modalCloseBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // PREVIEW FIX: Gracefully degrade if Firebase isn't initialized
+            if (isFirebaseInitialized) {
+                await new Promise(resolve => {
+                    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                        } else {
+                            try {
+                                const userCredential = initialAuthToken ? await signInWithCustomToken(auth, initialAuthToken) : await signInAnonymously(auth);
+                                userId = userCredential.user.uid;
+                            } catch (error) {
+                                showModal('Auth Error', 'Could not authenticate. Please try again later.');
+                                console.error("Firebase auth error:", error);
+                            }
+                        }
+                        isAuthReady = true;
+                        document.getElementById('user-info').classList.remove('hidden');
+                        document.getElementById('user-id-display').textContent = userId;
+                        unsubscribe();
+                        resolve();
+                    });
+                });
+            } else {
+                // If Firebase isn't available, show offline state
+                isAuthReady = true; 
+                userId = 'firebase-offline';
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('user-id-display').textContent = userId;
+                document.getElementById('bed-availability-display').innerHTML = '<p class="text-center text-gray-500">Bed data unavailable (Offline).</p>';
+                document.getElementById('queue-display').innerHTML = '<p class="text-center text-gray-500">Queue data unavailable (Offline).</p>';
+            }
+
+            const appContainer = document.getElementById('app-container');
+            const navButtons = document.querySelectorAll('.nav-btn, .nav-btn-back');
+            const startBtn = document.getElementById('start-btn');
+            const slides = Array.from(document.querySelectorAll('.slide'));
+            const slideIds = slides.map(slide => slide.id);
+
+            function navigateToSlide(targetId) {
+                const slideIndex = slideIds.indexOf(targetId);
+                if (slideIndex > -1) {
+                    appContainer.style.transform = `translateX(-${slideIndex * 100}vw)`;
+                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                    const mainNavBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
+                    if (mainNavBtn) mainNavBtn.classList.add('active');
+                }
+            }
+
+            if (startBtn) startBtn.addEventListener('click', () => navigateToSlide('main-menu-slide'));
+            navButtons.forEach(button => {
+                button.addEventListener('click', (e) => navigateToSlide(e.currentTarget.dataset.target));
+            });
+            document.getElementById('nav-main-menu').classList.add('active');
+
+            const appointmentForm = document.getElementById('appointment-form');
+            appointmentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!isAuthReady) {
+                    showModal('Error', 'System not ready. Please wait a moment.');
+                    return;
+                }
+                currentTransaction = {
+                    service: 'Appointment Booking', amount: 50.00,
+                    details: {
+                        patientName: document.getElementById('patient-name').value,
+                        department: document.getElementById('department').value,
+                        appointmentDate: document.getElementById('appointment-date').value,
+                        appointmentTime: document.getElementById('appointment-time').value,
+                        userId
+                    }
+                };
+                document.getElementById('payment-service').textContent = currentTransaction.service;
+                document.getElementById('payment-amount').textContent = `$${currentTransaction.amount.toFixed(2)}`;
+                navigateToSlide('payment-slide');
+            });
+
+            const paymentForm = document.getElementById('payment-form');
+            paymentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                document.getElementById('pay-btn-text').classList.add('hidden');
+                document.getElementById('pay-btn-spinner').classList.remove('hidden');
+                document.getElementById('pay-btn').disabled = true;
+
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                if (!isFirebaseInitialized) {
+                    showModal('Offline Mode', 'Cannot process payments while offline.');
+                } else {
+                    try {
+                        await addDoc(collection(db, `artifacts/${appId}/public/data/payments`), { ...currentTransaction, status: 'Completed', timestamp: new Date() });
+                        if (currentTransaction.service === 'Appointment Booking') {
+                            await addDoc(collection(db, `artifacts/${appId}/public/data/appointments`), { ...currentTransaction.details, status: 'Confirmed', createdAt: new Date() });
+                            showModal('Success!', `Payment of $${currentTransaction.amount.toFixed(2)} successful. Your appointment has been confirmed!`);
+                            appointmentForm.reset();
+                        } else if (currentTransaction.service === 'Lab Report Retrieval') {
+                            const mockReports = {'12345': { patientName: 'John Doe', reportId: '12345', results: '**Blood Test Results:**\n- Hemoglobin: 14.5 g/dL (Normal)\n- Platelets: 250,000/uL (Normal)\n- Cholesterol: 210 mg/dL (Slightly High)' } };
+                            const reportData = mockReports[currentTransaction.details.reportId];
+                            const reportResultDiv = document.getElementById('report-result');
+                            if (reportData) {
+                                reportResultDiv.innerHTML = `<h3 class="text-lg font-bold text-gray-800">Report for ${reportData.patientName}</h3><p class="text-sm text-gray-500 mb-4">Report ID: ${reportData.reportId}</p><pre class="whitespace-pre-wrap text-gray-700 font-sans">${reportData.results}</pre>`;
+                                reportResultDiv.classList.remove('hidden');
+                                showModal('Success!', 'Payment complete. Your report is now displayed on the screen.');
+                            } else {
+                                showModal('Error', 'Report not found. Please check the ID.');
+                            }
+                            document.getElementById('reports-form').reset();
+                        }
+                    } catch (error) {
+                        showModal('Payment Error', `Payment failed. Please try again. Error: ${error.message}`);
+                        console.error("Payment failed:", error);
+                    }
+                }
+                document.getElementById('pay-btn-text').classList.remove('hidden');
+                document.getElementById('pay-btn-spinner').classList.add('hidden');
+                document.getElementById('pay-btn').disabled = false;
+            });
+
+            const reportsForm = document.getElementById('reports-form');
+            reportsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const reportId = document.getElementById('report-id').value;
+                const mockReports = {
+                    '12345': { patientName: 'John Doe', reportId: '12345' },
+                    '67890': { patientName: 'Jane Smith', reportId: '67890' }
+                };
+                if (mockReports[reportId]) {
+                    currentTransaction = { service: 'Lab Report Retrieval', amount: 25.00, details: { reportId, userId } };
+                    document.getElementById('payment-service').textContent = currentTransaction.service;
+                    document.getElementById('payment-amount').textContent = `$${currentTransaction.amount.toFixed(2)}`;
+                    navigateToSlide('payment-slide');
+                } else {
+                    showModal('Report Not Found', `No report found for ID: ${reportId}. Please check the ID and try again.`);
+                }
+            });
+            
+            const chatBtn = document.getElementById('ai-chat-btn');
+            const chatWidget = document.getElementById('ai-chat-widget');
+            const chatInput = document.getElementById('chat-input');
+            const keyboard = document.getElementById('on-screen-keyboard');
+            chatBtn.addEventListener('click', () => chatWidget.classList.toggle('open'));
+            document.getElementById('close-chat-btn').addEventListener('click', () => chatWidget.classList.remove('open'));
+            chatInput.addEventListener('focus', () => keyboard.classList.add('visible'));
+            document.addEventListener('click', (e) => {
+                if (!chatWidget.contains(e.target) && !chatBtn.contains(e.target)) keyboard.classList.remove('visible');
+            });
+            keyboard.addEventListener('click', (e) => {
+                if (e.target.classList.contains('keyboard-key')) {
+                    const char = e.target.dataset.char || e.target.textContent;
+                    if (char === '⌫') chatInput.value = chatInput.value.slice(0, -1);
+                    else if (char === 'Space') chatInput.value += ' ';
+                    else chatInput.value += char;
+                }
+            });
+
+            async function sendMessage() {
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+                appendMessage(userMessage, 'user');
+                chatInput.value = '';
+                conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
+                const typingIndicator = appendMessage('...', 'ai');
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({
+                            contents: conversationHistory,
+                            tools: [{ "google_search": {} }],
+                            systemInstruction: { parts: [{ text: "You are a helpful hospital AI assistant. Be concise. Disclaim that you are not a medical professional if asked for a diagnosis." }] }
+                        }) 
+                    });
+                    if (!response.ok) throw new Error(`API error: ${response.status}`);
+                    const result = await response.json();
+                    const aiResponse = result.candidates[0].content.parts[0].text;
+                    typingIndicator.textContent = aiResponse;
+                    conversationHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    typingIndicator.textContent = "Sorry, I am having trouble connecting right now.";
+                }
+            }
+            document.getElementById('chat-send-btn').addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+            function appendMessage(text, sender) {
+                const chatBody = document.getElementById('chat-body');
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+                messageDiv.textContent = text;
+                chatBody.appendChild(messageDiv);
+                chatBody.scrollTop = chatBody.scrollHeight;
+                return messageDiv;
+            }
+
+            async function setupRealtimeListeners() {
+                if (!isFirebaseInitialized || !isAuthReady) return;
+                try {
+                    const bedsCollectionRef = collection(db, `artifacts/${appId}/public/data/beds`);
+                    if ((await getDocs(bedsCollectionRef)).empty) {
+                        await addDoc(bedsCollectionRef, { ward: 'General Ward A', available: 15, total: 20 });
+                        await addDoc(bedsCollectionRef, { ward: 'ICU', available: 3, total: 5 });
+                    }
+                    onSnapshot(query(bedsCollectionRef), (snapshot) => {
+                        const bedDisplay = document.getElementById('bed-availability-display');
+                        bedDisplay.innerHTML = '';
+                        snapshot.forEach(doc => {
+                            const data = doc.data(), card = document.createElement('div');
+                            card.className = `p-4 rounded-xl shadow-md ${data.available > 0 ? 'bg-green-50' : 'bg-red-50'} border ${data.available > 0 ? 'border-green-200' : 'border-red-200'}`;
+                            card.innerHTML = `<h4 class="font-bold text-lg">${data.ward}</h4><p class="text-sm">Available: <span class="font-semibold">${data.available}</span> / ${data.total}</p>`;
+                            bedDisplay.appendChild(card);
+                        });
+                        if (snapshot.empty) bedDisplay.innerHTML = '<p class="text-center text-gray-500">No bed data available.</p>';
+                    });
+
+                    const queueCollectionRef = collection(db, `artifacts/${appId}/public/data/queue`);
+                    if ((await getDocs(queueCollectionRef)).empty) {
+                        await addDoc(queueCollectionRef, { department: 'Cardiology', waiting: 5, eta: '20 mins' });
+                        await addDoc(queueCollectionRef, { department: 'General Check-up', waiting: 12, eta: '45 mins' });
+                    }
+                    onSnapshot(query(queueCollectionRef), (snapshot) => {
+                        const queueDisplay = document.getElementById('queue-display');
+                        let htmlContent = '<ul class="list-disc pl-5 space-y-2">', hasData = false;
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            htmlContent += `<li class="text-lg text-gray-700 font-medium">${data.department}: <span class="text-blue-600 font-semibold">${data.waiting} people waiting</span> (Est. ${data.eta})</li>`;
+                            hasData = true;
+                        });
+                        queueDisplay.innerHTML = hasData ? htmlContent + '</ul>' : '<p class="text-center text-gray-500">No queue data.</p>';
+                    });
+                } catch (error) { console.error("Listener setup failed:", error); }
+            }
+
+            const authCheckInterval = setInterval(() => {
+                if (isAuthReady) {
+                    clearInterval(authCheckInterval);
+                    setupRealtimeListeners();
+                }
+            }, 500);
+        });
+
+        document.getElementById('doctor-search-btn').addEventListener('click', () => {
+            const searchInput = document.getElementById('doctor-search-input').value.toLowerCase();
+            const doctorResults = document.getElementById('doctor-results');
+            const mockDoctors = [
+                { name: 'Dr. Emily Carter', department: 'Cardiology', schedule: 'Mon, Wed, Fri' },
+                { name: 'Dr. Ben Miller', department: 'Neurology', schedule: 'Tue, Thu' },
+                { name: 'Dr. Sarah Rodriguez', department: 'Orthopedics', schedule: 'Mon-Wed' },
+                { name: 'Dr. James Wilson', department: 'Pediatrics', schedule: 'Mon-Fri' },
+                { name: 'Dr. Liam Chen', department: 'Cardiology', schedule: 'Tue, Fri' },
+            ];
+            const results = mockDoctors.filter(d => d.name.toLowerCase().includes(searchInput) || d.department.toLowerCase().includes(searchInput));
+            doctorResults.innerHTML = '';
+            if (results.length > 0) {
+                results.forEach(doctor => {
+                    const card = document.createElement('div');
+                    card.className = 'p-4 rounded-xl shadow-sm bg-gray-50 border border-gray-200';
+                    card.innerHTML = `<h4 class="font-bold text-lg text-blue-800">${doctor.name}</h4><p class="text-sm text-gray-600">Dept: ${doctor.department}</p><p class="text-sm text-gray-500">Available: ${doctor.schedule}</p>`;
+                    doctorResults.appendChild(card);
+                });
+            } else {
+                doctorResults.innerHTML = '<p class="text-center text-gray-500">No doctors found.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
+
